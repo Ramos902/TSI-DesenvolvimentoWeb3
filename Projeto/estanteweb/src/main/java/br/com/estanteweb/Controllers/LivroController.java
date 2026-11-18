@@ -17,12 +17,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.estanteweb.LivroRepository;
 import br.com.estanteweb.Models.Livro;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class LivroController {
 
     @Autowired
     private LivroRepository repositorio;
+
+    private boolean estaLogado(HttpSession session) {
+        return session.getAttribute("usuarioLogado") != null;
+    }
 
     @GetMapping({"/livros", "/livros/html"})
     public String listar(@RequestParam(required = false) String ordem, Model container) {
@@ -47,7 +52,10 @@ public class LivroController {
     }
 
     @GetMapping ("/livros/editar/{id}")
-    public String editarLivro(@PathVariable Long id, Model model){
+    public String editarLivro(@PathVariable Long id, HttpSession session, Model model){
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
         Livro livro = repositorio.buscarPorId(id);
         if(livro == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado");
@@ -63,7 +71,11 @@ public class LivroController {
             @RequestParam String autor,
             @RequestParam int ano,
             @RequestParam double preco,
+            HttpSession session,
             Model model){ 
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
 
         Livro livroExistente = repositorio.buscarPorId(id);
         if(livroExistente == null) {
@@ -99,7 +111,10 @@ public class LivroController {
     }
 
     @GetMapping("/livros/excluir/{id}")
-    public String confirmarExclusao(@PathVariable Long id, Model model) {
+    public String confirmarExclusao(@PathVariable Long id, HttpSession session, Model model) {
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
         Livro livro = repositorio.buscarPorId(id);
         if (livro == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado");
@@ -109,7 +124,10 @@ public class LivroController {
     }
 
     @PostMapping ("/livros/excluir/{id}")
-    public String excluirLivro(@PathVariable Long id) {
+    public String excluirLivro(@PathVariable Long id, HttpSession session) {
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
         Livro livro = repositorio.buscarPorId(id);
         if (livro == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado");
@@ -119,7 +137,10 @@ public class LivroController {
     }
 
     @GetMapping("/livros/novo")
-    public String novoLivro() {
+    public String novoLivro(HttpSession session) {
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
         return "livro-novo";
     }
 
@@ -129,7 +150,11 @@ public class LivroController {
             @RequestParam String autor,
             @RequestParam int ano,
             @RequestParam double preco,
+            HttpSession session,
             Model model) {
+        if (!estaLogado(session)) {
+            return "redirect:/login";
+        }
 
         if (titulo.isBlank() || autor.isBlank() || preco <= 0) {
             if (titulo.isBlank()) {

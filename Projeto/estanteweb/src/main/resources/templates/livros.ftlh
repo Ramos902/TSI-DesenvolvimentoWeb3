@@ -20,19 +20,23 @@
             <li>Autor: ${livro.autor}</li>
             <li>Ano: ${livro.ano?c}</li>
             <li>Preço: R$ ${livro.preco?string["0.00"]}</li>
-            <li>
-                <form action="/livros/editar/${livro.id?c}" method="get" style="display:inline;">
-                    <input type="submit" value="Editar">
-                </form> |
-                <form action="/livros/excluir/${livro.id?c}" method="get" style="display:inline;">
-                    <input type="submit" value="Excluir">
-                </form>
-            </li>
+            <#if usuarioLogado??>
+                <li>
+                    <form action="/livros/editar/${livro.id?c}" method="get" style="display:inline;">
+                        <input type="submit" value="Editar">
+                    </form> |
+                    <form action="/livros/excluir/${livro.id?c}" method="get" style="display:inline;">
+                        <input type="submit" value="Excluir">
+                    </form>
+                </li>
+            </#if>
             <br>
         </#list>
     </#if>
 </ul>
 
-<p>
-    <a href="/livros/novo">Cadastrar novo livro</a>
-</p>
+<#if usuarioLogado??>
+    <p>
+        <a href="/livros/novo">Cadastrar novo livro</a>
+    </p>
+</#if>

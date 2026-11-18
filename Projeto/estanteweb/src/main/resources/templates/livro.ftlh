@@ -7,10 +7,12 @@
 <p><strong>Ano:</strong> ${livro.ano?c}</p>
 <p><strong>Preço:</strong> R$ ${livro.preco?string["0.00"]}</p>
 
-<p>
-    <a href="/livros/editar/${livro.id?c}">Editar este livro</a> |
-    <a href="/livros/excluir/${livro.id?c}">Remover este livro</a>
-</p>
+<#if usuarioLogado??>
+    <p>
+        <a href="/livros/editar/${livro.id?c}">Editar este livro</a> |
+        <a href="/livros/excluir/${livro.id?c}">Remover este livro</a>
+    </p>
+</#if>
 
 <#if outrosLivros?? && (outrosLivros?size > 0)>
     <h3>Outros títulos do mesmo autor:</h3>
