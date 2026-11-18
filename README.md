@@ -18,6 +18,7 @@ Aplicação web para catálogo e gerenciamento de livros, sugestões e reservas.
 - Spring Boot 4 (Spring MVC)
 - Apache FreeMarker (`.ftlh`)
 - Spring JDBC (`JdbcTemplate`)
+- Spring Session JDBC (`HttpSession`)
 - MySQL 8
 - Flyway
 - Docker & Docker Compose
@@ -58,27 +59,37 @@ cd estanteweb
 
 ### Rotas
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/` | Página inicial |
-| GET | `/livros` | Listagem de livros (aceita `?ordem=titulo|autor|ano|preco`) |
-| GET | `/livros/{id}` | Ficha detalhada do livro (com links para editar e remover) |
-| GET | `/livros/editar/{id}` | Formulário de edição com dados atuais pré-carregados |
-| POST | `/livros/editar/{id}` | Salva alterações com validação e padrão PRG |
-| GET | `/livros/excluir/{id}` | Tela de confirmação antes de remover o livro |
-| POST | `/livros/excluir/{id}` | Remoção segura do livro no banco de dados |
-| GET | `/livros/novo` | Formulário de cadastro de livro |
-| POST | `/livros` | Cadastro de livro (com validação e PRG) |
-| GET | `/livros/busca` | Busca por título (`?titulo=...`) |
-| GET | `/livros/total` | Contagem total de livros |
-| GET | `/livros/valor-total` | Soma dos preços dos livros |
-| GET | `/sugestoes` | Listagem de sugestões |
-| GET | `/sugestoes/nova` | Formulário de sugestão |
-| POST | `/sugestoes` | Salvar sugestão no banco |
-| GET | `/contato` | Formulário de contato |
-| POST | `/contato` | Envio de contato |
-| GET | `/reserva` | Formulário de reserva |
-| POST | `/reserva` | Processamento de reserva |
+| Método | Rota | Descrição | Acesso |
+|---|---|---|---|
+| GET | `/` | Página inicial | Público |
+| GET | `/login` | Formulário de login | Público |
+| POST | `/login` | Autentica usuário e salva `usuarioLogado` na sessão | Público |
+| POST | `/logout` | Invalida a sessão e redireciona para `/login` | Público |
+| GET | `/livros` | Listagem de livros (aceita `?ordem=titulo|autor|ano|preco`) | Público |
+| GET | `/livros/{id}` | Ficha detalhada do livro (com links para editar e remover quando logado) | Público |
+| GET | `/livros/editar/{id}` | Formulário de edição com dados atuais pré-carregados | Autenticado |
+| POST | `/livros/editar/{id}` | Salva alterações com validação e padrão PRG | Autenticado |
+| GET | `/livros/excluir/{id}` | Tela de confirmação antes de remover o livro | Autenticado |
+| POST | `/livros/excluir/{id}` | Remoção segura do livro no banco de dados | Autenticado |
+| GET | `/livros/novo` | Formulário de cadastro de livro | Autenticado |
+| POST | `/livros` | Cadastro de livro (com validação e PRG) | Autenticado |
+| GET | `/livros/busca` | Busca por título (`?titulo=...`) | Público |
+| GET | `/livros/total` | Contagem total de livros | Público |
+| GET | `/livros/valor-total` | Soma dos preços dos livros | Público |
+| GET | `/sugestoes` | Listagem de sugestões | Público |
+| GET | `/sugestoes/nova` | Formulário de sugestão | Público |
+| POST | `/sugestoes` | Salvar sugestão no banco | Público |
+| GET | `/contato` | Formulário de contato | Público |
+| POST | `/contato` | Envio de contato | Público |
+| GET | `/reserva` | Formulário de reserva | Público |
+| POST | `/reserva` | Processamento de reserva | Público |
+
+### Autenticação e Sessão
+
+- **Login (`LoginController` / `login.ftlh`):** valida e-mail e senha via `UsuarioRepository` e grava o objeto `Usuario` na `HttpSession` sob a chave `usuarioLogado`.
+- **Cabeçalho e interface (`cabecalho.ftlh`, `livros.ftlh`, `livro.ftlh`):** com `spring.freemarker.expose-session-attributes=true`, exibe o nome do usuário logado e o botão **Sair** (ou o link **Entrar** para visitantes), além de ocultar botões/links de cadastro, edição e exclusão para quem não está autenticado.
+- **Proteção no servidor (`LivroController`):** rotas administrativas de criação, edição e exclusão verificam `usuarioLogado` na sessão e redirecionam para `/login` caso não haja usuário autenticado.
+- **Credencial inicial:** `marta@estanteweb.com` / `estante123`.
 
 ### Banco de dados
 
@@ -87,3 +98,4 @@ As migrações do Flyway (`Projeto/estanteweb/src/main/resources/db/migration/`)
 - `V1__criar_tabela_livro.sql`: DDL da tabela `livro`
 - `V2__criar_tabela_sugestao.sql`: DDL da tabela `sugestao`
 - `V3__inserir_livros_iniciais.sql`: Carga inicial de livros
+- `V4__criar_tabela_usuario.sql`: DDL da tabela `usuario` e inserção da usuária inicial (`Marta`)
